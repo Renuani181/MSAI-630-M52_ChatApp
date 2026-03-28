@@ -1,0 +1,16 @@
+# Python
+backend/venv/
+backend/__pycache__/
+backend/*.pyc
+backend/user_memories/
+backend/chat_histories/
+
+# Environment
+backend/.env
+
+# Node
+frontend/node_modules/
+frontend/build/
+
+# OS
+.DS_Store
