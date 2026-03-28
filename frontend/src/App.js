@@ -3,12 +3,17 @@ import ReactMarkdown from 'react-markdown';
 import { v4 as uuidv4 } from 'uuid';
 import './App.css';
 
-const API = '';  // uses proxy; empty string = same origin
+const API = process.env.REACT_APP_API_URL || '';  // set REACT_APP_API_URL in production
+
+const FUN_NAMES = [
+  'hulk', 'thor', 'nova', 'blaze', 'echo', 'pixel', 'storm', 'cipher',
+  'viper', 'rogue', 'titan', 'sage', 'phantom', 'zenith', 'bolt'
+];
 
 function getOrCreateUserId() {
   let userId = localStorage.getItem('chat_user_id');
-  if (!userId) {
-    userId = 'user_' + uuidv4().slice(0, 8);
+  if (!userId || userId.startsWith('user_')) {
+    userId = FUN_NAMES[Math.floor(Math.random() * FUN_NAMES.length)];
     localStorage.setItem('chat_user_id', userId);
   }
   return userId;
@@ -17,6 +22,8 @@ function getOrCreateUserId() {
 export default function App() {
   const [userId] = useState(getOrCreateUserId);
   const [sessionId, setSessionId] = useState(() => 'session_' + uuidv4().slice(0, 8));
+  const [editingFact, setEditingFact] = useState(null); // index of fact being edited
+  const [editingValue, setEditingValue] = useState('');
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [streaming, setStreaming] = useState(false);
@@ -149,6 +156,29 @@ export default function App() {
     await fetchMemory();
   };
 
+  const deleteFact = async (fact) => {
+    await fetch(`${API}/memory/${userId}/fact?fact=${encodeURIComponent(fact)}`, { method: 'DELETE' });
+    await fetchMemory();
+  };
+
+  const editFact = (index, fact) => {
+    setEditingFact(index);
+    setEditingValue(fact);
+  };
+
+  const saveEditedFact = async (oldFact) => {
+    if (editingValue.trim() && editingValue.trim() !== oldFact) {
+      await fetch(`${API}/memory/${userId}/fact`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ old_fact: oldFact, new_fact: editingValue.trim() }),
+      });
+      await fetchMemory();
+    }
+    setEditingFact(null);
+    setEditingValue('');
+  };
+
   const handleKey = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -233,7 +263,28 @@ export default function App() {
               <div className="memory-section">
                 <label>Known Facts</label>
                 <ul>
-                  {memory.facts.map((f, i) => <li key={i}>{f}</li>)}
+                  {memory.facts.map((f, i) => (
+                    <li key={i} className="fact-item">
+                      {editingFact === i ? (
+                        <input
+                          className="fact-input"
+                          value={editingValue}
+                          onChange={e => setEditingValue(e.target.value)}
+                          onBlur={() => saveEditedFact(f)}
+                          onKeyDown={e => {
+                            if (e.key === 'Enter') saveEditedFact(f);
+                            if (e.key === 'Escape') { setEditingFact(null); setEditingValue(''); }
+                          }}
+                          autoFocus
+                        />
+                      ) : (
+                        <span className="fact-text" onClick={() => editFact(i, f)}>{f}</span>
+                      )}
+                      <div className="fact-actions">
+                        <button className="fact-btn delete" onClick={() => deleteFact(f)} title="Delete">🗑</button>
+                      </div>
+                    </li>
+                  ))}
                 </ul>
               </div>
             )}

@@ -4,6 +4,8 @@ Uses Groq (Llama 3) with streaming, conversation history, and persistent user me
 """
 import json
 import os
+import threading
+import time
 from datetime import datetime
 from pathlib import Path
 from typing import AsyncGenerator
@@ -97,7 +99,9 @@ Guidelines:
 - Reference what you know about the user when relevant to make responses feel personalized.
 - After learning something new and important, briefly confirm you've noted it.
 - Be warm, helpful, and conversational.
-- If no memory context is provided yet, introduce yourself and invite the user to share a bit about themselves."""
+- If no memory context is provided yet, introduce yourself and invite the user to share a bit about themselves.
+- IMPORTANT: Only refer to facts that are explicitly listed in the memory above. Never infer, assume, or make up additional details about the user that are not stated. If you are not sure about something, ask the user instead of guessing.
+- IMPORTANT: Answer only what the user is asking in their current message. Do not volunteer extra information from memory unless it is directly relevant to the question. Keep responses short and focused."""
 
 
 class ChatRequest(BaseModel):
@@ -164,8 +168,11 @@ async def chat(req: ChatRequest):
             # Persist to disk
             _save_history(req.session_id, history, req.user_id)
 
-            # Extract and save any new facts from this turn
-            _extract_and_save_memory(req.user_id, req.message, full_response)
+            # Extract facts in background after a short delay to avoid rate limits
+            def delayed_extract():
+                time.sleep(3)
+                _extract_and_save_memory(req.user_id, req.message, full_response)
+            threading.Thread(target=delayed_extract, daemon=True).start()
 
             yield f"data: {json.dumps({'type': 'done'})}\n\n"
 
@@ -189,11 +196,15 @@ def _extract_and_save_memory(user_id: str, user_msg: str, assistant_msg: str):
                 {
                     "role": "system",
                     "content": (
-                        "You extract personal facts from conversations. "
+                        "You extract everything about the user from conversations. "
                         "Return a JSON object with a single key 'facts' containing a list of strings. "
-                        "Each fact should be a concise statement about the user (e.g. 'Name is Alice'). "
-                        "Return an empty list if no new personal facts were shared. "
-                        "Only include facts the user explicitly stated. Return JSON only, no markdown."
+                        "Extract ALL of the following if mentioned: "
+                        "name, age, job, school, hobbies, interests, favorite things, places visited, travel experiences, "
+                        "life events, opinions, goals, family, relationships, food preferences, sports, movies, music, "
+                        "daily habits, achievements, struggles, locations, dates of events, and anything else personal. "
+                        "Each fact should be a short clear statement (e.g. 'Visited Colorado on September 9th 2026'). "
+                        "Return an empty list only if the user shared absolutely nothing personal. "
+                        "Only include what the user explicitly stated. Return JSON only, no markdown."
                     ),
                 },
                 {
@@ -262,3 +273,26 @@ def clear_memory(user_id: str):
     memory["summary"] = ""
     save_memory(user_id, memory)
     return {"cleared": True}
+
+
+class FactUpdateRequest(BaseModel):
+    old_fact: str
+    new_fact: str
+
+
+@app.patch("/memory/{user_id}/fact")
+def update_fact(user_id: str, req: FactUpdateRequest):
+    memory = load_memory(user_id)
+    if req.old_fact in memory["facts"]:
+        idx = memory["facts"].index(req.old_fact)
+        memory["facts"][idx] = req.new_fact
+        save_memory(user_id, memory)
+    return load_memory(user_id)
+
+
+@app.delete("/memory/{user_id}/fact")
+def delete_fact(user_id: str, fact: str):
+    memory = load_memory(user_id)
+    memory["facts"] = [f for f in memory["facts"] if f != fact]
+    save_memory(user_id, memory)
+    return load_memory(user_id)
