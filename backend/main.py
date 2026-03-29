@@ -225,7 +225,15 @@ def _extract_and_save_memory(user_id: str, user_msg: str, assistant_msg: str):
                 text = text[4:]
 
         data = json.loads(text)
-        facts = data.get("facts", [])
+        raw_facts = data.get("facts", [])
+        # Ensure all facts are strings, not objects
+        facts = []
+        for f in raw_facts:
+            if isinstance(f, str):
+                facts.append(f)
+            elif isinstance(f, dict):
+                # Convert dict like {"name": "Anna"} to "name: Anna"
+                facts.extend(f"{k}: {v}" for k, v in f.items())
 
         if facts:
             memory = load_memory(user_id)
