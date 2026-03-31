@@ -168,6 +168,9 @@ async def chat(req: ChatRequest):
             # Persist to disk
             _save_history(req.session_id, history, req.user_id)
 
+            # If user explicitly asked to remember something, force-save it immediately
+            _force_save_if_requested(req.user_id, req.message)
+
             # Extract facts in background after a short delay to avoid rate limits
             def delayed_extract():
                 time.sleep(3)
@@ -184,6 +187,24 @@ async def chat(req: ChatRequest):
         media_type="text/event-stream",
         headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
     )
+
+
+def _force_save_if_requested(user_id: str, user_msg: str):
+    """If user explicitly says remember/note/save this, force store the message as a fact."""
+    triggers = ["remember", "remember this", "remember that", "note this", "save this", "don't forget", "make note"]
+    msg_lower = user_msg.lower()
+    if any(t in msg_lower for t in triggers):
+        # Strip the trigger phrase and save the rest as a fact
+        fact = user_msg
+        for t in ["please remember that", "please remember", "remember that", "remember this", "remember", "note this", "save this", "don't forget that", "don't forget", "make note that", "make note"]:
+            fact = fact.lower().replace(t, "").strip(" ,:.")
+        if fact:
+            # Capitalize first letter
+            fact = fact[0].upper() + fact[1:]
+            memory = load_memory(user_id)
+            if fact not in memory["facts"]:
+                memory["facts"].append(fact)
+                save_memory(user_id, memory)
 
 
 def _extract_and_save_memory(user_id: str, user_msg: str, assistant_msg: str):
