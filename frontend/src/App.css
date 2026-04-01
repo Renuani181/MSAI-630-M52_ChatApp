@@ -8,8 +8,8 @@
 .sidebar {
   width: 280px;
   min-width: 280px;
-  background: #16161d;
-  border-right: 1px solid #222230;
+  background: #ffffff;
+  border-right: 1px solid #e5e7eb;
   display: flex;
   flex-direction: column;
   padding: 20px 16px;
@@ -28,7 +28,7 @@
 
 .sidebar-sub {
   font-size: 0.75rem;
-  color: #555570;
+  color: #6b7280;
   margin-top: 4px;
 }
 
@@ -36,8 +36,8 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  background: #1e1e2a;
-  border: 1px solid #2a2a40;
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
   border-radius: 8px;
   padding: 8px 12px;
 }
@@ -52,7 +52,7 @@
 
 .user-id {
   font-size: 0.75rem;
-  color: #888;
+  color: #374151;
   font-family: monospace;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -86,7 +86,7 @@
   width: 100%;
   padding: 9px 14px;
   border-radius: 8px;
-  border: 1px solid #2a2a40;
+  border: 1px solid #e5e7eb;
   font-size: 0.8rem;
   font-family: inherit;
   cursor: pointer;
@@ -96,8 +96,8 @@
 
 .session-item {
   width: 100%;
-  background: #1e1e2a;
-  border: 1px solid #252535;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
   border-radius: 8px;
   padding: 8px 10px;
   cursor: pointer;
@@ -109,12 +109,12 @@
   font-family: inherit;
 }
 
-.session-item:hover { background: #252535; border-color: #3a3a55; }
-.session-item.active { border-color: #7c3aed; background: #1e1630; }
+.session-item:hover { background: #f3f4f6; border-color: #d1d5db; }
+.session-item.active { border-color: #7c3aed; background: #f5f3ff; }
 
 .session-preview {
   font-size: 0.78rem;
-  color: #ccc;
+  color: #374151;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -123,7 +123,7 @@
 
 .session-meta {
   font-size: 0.68rem;
-  color: #555;
+  color: #9ca3af;
   display: block;
 }
 
@@ -133,14 +133,15 @@
   justify-content: space-between;
   gap: 6px;
   padding: 4px 8px;
-  background: #222230;
+  background: #f3f4f6;
   border-radius: 4px;
 }
 
 .fact-text {
-  color: #bbb;
+  color: #374151;
   font-size: 0.78rem;
   flex: 1;
+  cursor: pointer;
 }
 
 .fact-actions {
@@ -175,23 +176,23 @@
 }
 
 .btn-secondary {
-  background: #1e1e2a;
-  color: #bbb;
+  background: #f9fafb;
+  color: #374151;
 }
 
-.btn-secondary:hover { background: #252535; color: #e8e8f0; }
+.btn-secondary:hover { background: #f3f4f6; color: #111827; }
 
 .btn-danger {
-  background: #2a1a1a;
-  color: #f87171;
-  border-color: #3a2020;
+  background: #fff1f2;
+  color: #e11d48;
+  border-color: #fecdd3;
 }
 
-.btn-danger:hover { background: #3a2020; }
+.btn-danger:hover { background: #ffe4e6; }
 
 .memory-panel {
-  background: #1a1a25;
-  border: 1px solid #252535;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
   border-radius: 10px;
   padding: 14px;
   font-size: 0.78rem;
@@ -212,13 +213,13 @@
 .memory-section label {
   display: block;
   font-size: 0.7rem;
-  color: #666;
+  color: #9ca3af;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin-bottom: 4px;
 }
 
-.memory-section p { color: #ccc; line-height: 1.5; }
+.memory-section p { color: #374151; line-height: 1.5; }
 
 .memory-section ul {
   list-style: none;
@@ -228,13 +229,13 @@
 }
 
 .memory-section li {
-  color: #bbb;
+  color: #374151;
   padding: 4px 8px;
-  background: #222230;
+  background: #f3f4f6;
   border-radius: 4px;
 }
 
-.memory-empty { color: #555; text-align: center; padding: 12px 0; }
+.memory-empty { color: #9ca3af; text-align: center; padding: 12px 0; }
 
 .sidebar-footer {
   margin-top: auto;
